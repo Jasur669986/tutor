@@ -16,7 +16,7 @@ const upload = multer({ dest: "uploads/" });
 
 // Инициализация клиента GenAI
 const client = new genai.GenAI({
-  apiKey: process.env.GOOGLE_API_KEY,
+  apiKey: process.env.GOOGLE_API_KEY
 });
 
 // Эндпоинт для теста
