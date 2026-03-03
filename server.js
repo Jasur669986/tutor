@@ -26,7 +26,7 @@ app.post("/solve", upload.single("image"), async (req, res) => {
     const base64Image = req.file.buffer.toString("base64");
 
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash-002",
       contents: [
         {
           role: "user",
