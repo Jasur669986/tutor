@@ -30,7 +30,7 @@ function App() {
   formData.append('image', file);
 
   try {
-    const response = await fetch('https://xn----7sbbfng0fj1d.onrender.com/solve', {
+    const response = await fetch('https://tutor-gt0a.onrender.com/solve', {
       method: 'POST',
       body: formData,
     });
