@@ -1,57 +1,50 @@
-// server.js
 import express from "express";
-import cors from "cors";
 import multer from "multer";
 import * as genai from "@google/genai";
+import path from "path";
+import fs from "fs";
 
 const app = express();
-const PORT = process.env.PORT || 10000;
 
-// Настройка CORS
-app.use(cors());
-app.use(express.json());
-
-// Настройка multer для загрузки файлов
+// Папка для временного хранения файлов
 const upload = multer({ dest: "uploads/" });
 
-// Инициализация клиента GenAI
-const client = new genai.Client({
-  apiKey: process.env.GOOGLE_API_KEY
-});
-
-// Эндпоинт для теста
-app.get("/", (req, res) => {
-  res.send("Сервер работает! Загрузка файлов доступна на /upload");
-});
-
-// Эндпоинт для загрузки файлов и генерации AI ответа
+// Обработка POST-запроса с файлом
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).send({ error: "Файл не загружен" });
+    }
+
     const file = req.file;
-    if (!file) return res.status(400).json({ error: "Файл не найден" });
+    const prompt = `Напиши короткий отзыв о файле "${file.originalname}"`;
 
-    // Здесь можно читать файл и формировать prompt, для примера простой текст:
-    const prompt = `Напиши короткий отзыв о файле ${file.originalname}`;
-
-    const response = await client.responses.create({
-      model: "models/text-bison-001", // рабочая текстовая модель
-      input: prompt,
+    // Генерация текста через Google GenAI
+    const response = await genai.text.generate({
+      model: "models/text-bison-001", // рабочая модель
+      prompt: prompt,
+      temperature: 0.7,
+      maxOutputTokens: 300,
+      apiKey: process.env.GOOGLE_API_KEY
     });
 
-    // Берём текст из ответа AI
-    const aiText = response.output[0]?.content[0]?.text || "Нет ответа от AI";
+    const review = response.output?.[0]?.content || "Нет ответа от AI";
 
-    res.json({
-      filename: file.originalname,
-      solution: aiText,
+    // Отправляем ответ
+    res.send({ review });
+
+    // Удаляем временный файл после обработки
+    fs.unlink(path.join(file.path), (err) => {
+      if (err) console.error("Ошибка при удалении файла:", err);
     });
   } catch (err) {
     console.error("Ошибка AI:", err);
-    res.status(500).json({ error: "Ошибка AI", details: err });
+    res.status(500).send({ error: "Ошибка AI" });
   }
 });
 
-// Запуск сервера
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
+// Статические файлы (если нужен фронтенд)
+app.use(express.static("public"));
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
