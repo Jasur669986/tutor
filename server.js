@@ -30,7 +30,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       return res.status(400).send("Файл не загружен");
     }
 
-    const prompt = Напиши короткий отзыв о файле ${file.originalname};
+    const prompt = `Напиши короткий отзыв о файле ${file.originalname}`;
 
     // генерация текста через GenAI
     const response = await client.models.generateText({
