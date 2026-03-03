@@ -2,16 +2,15 @@ import * as genai from "@google/genai";
 
 async function generateText(prompt) {
   try {
-    // Вызываем текстовую генерацию напрямую через genai.text.generate
     const response = await genai.text.generate({
-      model: "text-bison-001",
+      model: "models/text-bison-001",   // рабочая модель
       prompt: prompt,
       temperature: 0.7,
       maxOutputTokens: 300,
       apiKey: process.env.GOOGLE_API_KEY
     });
 
-    console.log("AI ответ:", response.outputText);
+    console.log(response.output[0].content);
   } catch (err) {
     console.error("Ошибка AI:", err);
   }
