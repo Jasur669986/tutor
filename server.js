@@ -31,7 +31,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     if (!file) return res.status(400).json({ error: "Файл не найден" });
 
     // Здесь можно читать файл и формировать prompt, для примера простой текст:
-    const prompt = Напиши короткий отзыв о файле ${file.originalname};
+    const prompt = `Напиши короткий отзыв о файле ${file.originalname}`;
 
     const response = await client.responses.create({
       model: "models/text-bison-001", // рабочая текстовая модель
