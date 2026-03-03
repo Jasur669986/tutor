@@ -1,16 +1,18 @@
 import * as genai from "@google/genai";
 
+// Создаём клиент
 const client = new genai.Client({
   apiKey: process.env.GOOGLE_API_KEY
 });
 
-async function listModels() {
-  try {
-    const response = await client.models.list();
-    console.log("Модели:", response.models || response);
-  } catch (err) {
-    console.error("Ошибка получения моделей:", err);
-  }
+// Пример использования генерации текста
+async function generateText(prompt) {
+  const response = await client.models.generateText({
+    model: "models/text-bison-001",
+    prompt: prompt,
+  });
+  console.log(response);
 }
 
-listModels();
+// Использование
+generateText("Напиши короткий отзыв о файле example.txt");
