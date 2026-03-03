@@ -25,9 +25,9 @@ app.post("/solve", upload.single("image"), async (req, res) => {
   }
 });
 
-app.use(express.static(path.resolve("./dist")));
+app.use(express.static(path.join(__dirname, "dist")));
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve("./dist/index.html"));
+  res.sendFile(path.join(__dirname, "dist/index.html"));
 });
 
 const PORT = process.env.PORT || 10000;
