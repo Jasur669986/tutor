@@ -49,6 +49,21 @@ app.post("/solve", upload.single("image"), async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Раздаём папку dist
+app.use(express.static(path.join(__dirname, "dist")));
+
+// Для всех остальных маршрутов отдаём index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
