@@ -1,70 +1,57 @@
+// server.js
 import express from "express";
-import multer from "multer";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
-import { GoogleGenAI } from "@google/genai";
+import multer from "multer";
+import * as genai from "@google/genai";
 
 const app = express();
-const upload = multer();
+const PORT = process.env.PORT || 10000;
+
+// Настройка CORS
 app.use(cors());
+app.use(express.json());
 
-if (!process.env.GEMINI_API_KEY) {
-  console.error("GEMINI_API_KEY not set!");
-  process.exit(1);
-}
+// Настройка multer для загрузки файлов
+const upload = multer({ dest: "uploads/" });
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Инициализация клиента GenAI
+const client = new genai.GenAI({
+  apiKey: process.env.GOOGLE_API_KEY,
+});
 
-// === РЕШЕНИЕ ЗАДАНИЯ ===
-app.post("/solve", upload.single("image"), async (req, res) => {
+// Эндпоинт для теста
+app.get("/", (req, res) => {
+  res.send("Сервер работает! Загрузка файлов доступна на /upload");
+});
+
+// Эндпоинт для загрузки файлов и генерации AI ответа
+app.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "Файл не загружен" });
-    }
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: "Файл не найден" });
 
-    const base64Image = req.file.buffer.toString("base64");
+    // Здесь можно читать файл и формировать prompt, для примера простой текст:
+    const prompt = Напиши короткий отзыв о файле ${file.originalname};
 
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-pro-002",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              inlineData: {
-                mimeType: req.file.mimetype,
-                data: base64Image,
-              },
-            },
-            {
-              text: "Реши задание на изображении подробно и пошагово. В конце напиши: Ответ:",
-            },
-          ],
-        },
-      ],
+    const response = await client.responses.create({
+      model: "models/text-bison-001", // рабочая текстовая модель
+      input: prompt,
     });
 
-    const text = response.text;
-    res.json({ solution: text });
+    // Берём текст из ответа AI
+    const aiText = response.output[0]?.content[0]?.text || "Нет ответа от AI";
 
-  } catch (error) {
-    console.error("Ошибка AI:", error);
-    res.status(500).json({ error: "Ошибка генерации" });
+    res.json({
+      filename: file.originalname,
+      solution: aiText,
+    });
+  } catch (err) {
+    console.error("Ошибка AI:", err);
+    res.status(500).json({ error: "Ошибка AI", details: err });
   }
 });
 
-// === РАЗДАЧА FRONTEND ===
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.static(path.join(__dirname, "dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
-});
-
-const PORT = process.env.PORT || 10000;
+// Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
