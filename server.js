@@ -1,11 +1,17 @@
 import express from "express";
 import multer from "multer";
 import * as genai from "@google/genai";
+import fs from "fs";
 
 const app = express();
-const upload = multer({ dest: "uploads/" });
+const uploadDir = "./uploads";
 
-// главная страница с формой
+// создаём папку uploads если вдруг нет
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+const upload = multer({ dest: uploadDir });
+
+// главная страница
 app.get("/", (req, res) => {
   res.send(`
     <h2>Загрузите файл для AI-отзыва</h2>
@@ -16,21 +22,20 @@ app.get("/", (req, res) => {
   `);
 });
 
-// загрузка файла и генерация текста
+// обработка загрузки и генерация AI-отзыва
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const file = req.file;
     if (!file) return res.status(400).send("Файл не загружен");
 
-    const prompt = `Напиши короткий отзыв о файле ${file.originalname}`;
+    const prompt = Напиши короткий отзыв о файле ${file.originalname};
 
-    // вызов генерации напрямую через genai.text.generate
-    const response = await genai.text.generate({
-      model: "text-bison-001", // рабочая модель
+    const response = await genai.models.generateText({
+      model: "text-bison-001",
       prompt: prompt,
       temperature: 0.7,
       maxOutputTokens: 300,
-      apiKey: process.env.GOOGLE_API_KEY // ключ из Render
+      apiKey: process.env.GOOGLE_API_KEY
     });
 
     const review = response.output[0].content;
