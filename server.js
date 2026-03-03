@@ -47,4 +47,19 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 10000;
+
+
+// Простая HTML-форма на главной странице
+app.get("/", (req, res) => {
+  res.send(`
+    <h2>Загрузка файла для AI-отзыва</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" required />
+      <button type="submit">Отправить</button>
+    </form>
+  `);
+});
+
+
+
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
