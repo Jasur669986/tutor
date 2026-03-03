@@ -15,7 +15,7 @@ app.use(express.json());
 const upload = multer({ dest: "uploads/" });
 
 // Инициализация клиента GenAI
-const client = new genai.GenAI({
+const client = new genai.Client({
   apiKey: process.env.GOOGLE_API_KEY
 });
 
